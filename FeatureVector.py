@@ -1,6 +1,5 @@
 """
 Instances of this class are used to store feature vectors for one login attempt.
-Do not touchy touch and quickly forget about this mess :D
 """
 
 
