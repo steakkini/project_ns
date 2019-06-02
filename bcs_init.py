@@ -29,8 +29,6 @@ def initialize_polynomial(q, coefficient_count):
 	:param q: the random prime number
 	:param coefficient_count: the desired degree of the random polynomial
 	:return: the polynomials coefficients
-
-	coefficients[0] = hpwd (see stackoverflow thread)
 	"""
 
 	coefficients = []

@@ -57,7 +57,7 @@ def clear_keyboard_buffer(input_len):
 	:param input_len: the length of already entered input
 
 	clear the console buffer in order to prevent leaking the password to the console
-	and also maintain a clear console structure ^^
+	and also maintain a clear console structure
 	"""
 
 	while input_len > 0:

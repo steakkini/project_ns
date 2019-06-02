@@ -61,11 +61,11 @@ def login_as_user():
 
 		for f in features:
 			if not int(f) < int(parameters.k):
-				features[i] = -9000	# the error level is below 9000!!!! ;-)
+				features[i] = -9000	# debug value
 			i += 1
 
 		points = []
-		features = [58, 59, 45, 43, 44, 66, 89]
+		features = [58, 59, 45, 43, 44, 66, 89] # debug values
 		for i in range(1, len(features)+1):
 			if not features[i-1] is -9000:
 				print(instructions[0][i-1])

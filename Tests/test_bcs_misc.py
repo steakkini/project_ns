@@ -26,7 +26,7 @@ class TestBcsMisc(TestCase):
 		self.assertEqual(misc.compare_list_items(l2), 0)
 
 	def test_pad_something(self):
-		padded_1 = misc.pad_something("holy shizzleeee!")
+		padded_1 = misc.pad_something("somerandomtext")
 		padded_2 = misc.pad_something(" ")
 
 		self.assertEqual(len(padded_1), len(padded_2))
