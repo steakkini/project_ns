@@ -1,0 +1,6 @@
+bcrypt
+pycrypto
+sha3
+pynput
+numpy
+mpmath
