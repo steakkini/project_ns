@@ -11,20 +11,20 @@ import bcs_demo as demo
 while True:
 	option = ""
 	
-	print("\n[0] Login" + "\n[1] Register" + "\n[2] Exit" + "\n[3] Demo")
+	print("\n[0] Login" + "\n[1] Register" + "\n[2] Demo" + "\n[3] Exit")
 
 	while option not in ["0", "1", "2", "3"]:
-		option = raw_input("Select an option: ")
+		option = raw_input("\nSelect an option: ")
 	
 	if option == "0":
-		login.login_as_user()
+		login.login_as_user(demo=False)
 
 	if option == "1":
-		register.register_new_user()
-	
+		register.register_new_user(demo=False)
+
 	if option == "2":
-		print("Good Bye!")
-		exit()
+		demo.run_demo()
 
 	if option == "3":
-		demo.run_demo()
+		print("Good Bye!")
+		exit()

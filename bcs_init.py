@@ -1,6 +1,6 @@
 from Crypto.Util import number
 import random
-import sha3
+import sha3 as sha3
 import bcs_parameters as parameters
 
 

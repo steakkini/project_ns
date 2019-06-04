@@ -1,2 +1,11 @@
+import bcs_login as login
+import bcs_register as register
+
 def run_demo():
-    print("xxx")
+    register.register_new_user(demo=True)
+
+    ## login.login_as_user(demo=True)
+
+
+    ### delete new user
+
