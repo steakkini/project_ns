@@ -7,7 +7,7 @@ import bcs_file_ops as file_ops
 import bcs_crypto as crypto
 
 
-def login_as_user():
+def login_as_user(demo):
 	"""
 	:return: 1 if login was successful, 0 otherwise
 
@@ -47,14 +47,21 @@ def login_as_user():
 		print("login inttable: " + str(instructions))
 
 		print("Enter password: ")
-		user_input = kb.read_input(1)  # user enters password once
-		password = user_input[1][0]	 # this is the password
 
-		features = user_input[0].split(" ")  # this are the measured feature values
+		if demo:
+			password = "test"
+			features = [58, 59, 45, 43, 44, 66, 89]
+			### read login file
+			### password = password from the file
+			### features = measured values from the file
+		else:
+			user_input = kb.read_input(1)  # user enters password once
+			password = user_input[1][0]	 # this is the password
+			features = user_input[0].split(" ")  # this are the measured feature values
 
 		feature_count = len(password) * 2 - 1
 
-		print(instruction_table)
+		print("\nInstruction table before logging in: " + str(instruction_table))
 
 		# check threshold and correct errors / anomalies
 		i = 0
@@ -65,7 +72,9 @@ def login_as_user():
 			i += 1
 
 		points = []
-		features = [58, 59, 45, 43, 44, 66, 89] # debug values
+		#features = [58, 59, 45, 43, 44, 66, 89] # debug values
+		print("\nRecovering hpwd...")
+
 		for i in range(1, len(features)+1):
 			if not features[i-1] is -9000:
 				print(instructions[0][i-1])
@@ -84,7 +93,7 @@ def login_as_user():
 		interpolated = misc.lagrange_interpolation(points)
 
 		hardened_password = interpolated(0)
-		print("recovered hpwd: ", hardened_password)
+		print("\nThe recovered hpwd is: ", hardened_password)
 
 		cipher_text = file_ops.read("users/" + username + "/history", "rb")
 
@@ -92,8 +101,9 @@ def login_as_user():
 			print(parameters.error_msg)
 			exit()
 
+		print("\nDecrypting history with hpwd...")
 		decrypted = crypto.aes_decrypt(cipher_text, crypto.derive_key(str(hardened_password)))
 
-		print(decrypted)
+		print("\nHistory decrypted:\n" + decrypted)
 
 		#### check against known plain text

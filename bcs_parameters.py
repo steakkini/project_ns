@@ -10,7 +10,8 @@ rounds = 3
 h = 8
 
 """ where k E R^+ is a parameter of the system (see section 3.1.) """
-k = 10
+""" assumed to be a feature threshold to filter out unrealistic deaviations (e.g. a delay of 2 seconds) """
+k = 99
 
 """ size of q """
 q_size = 160

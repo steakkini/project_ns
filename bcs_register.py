@@ -35,16 +35,14 @@ def register_new_user(demo):
 
 	if demo:
 		passwords = ["test", "test", "test"]
-		print("\nPasswords entered: " + str(passwords))
 		features = history.add_control_strings("58 59 45 43 44 66 89\n58 59 45 43 44 66 89\n58 59 45 43 44 66 89\n")
-		print("\nFeatures measured:\n " + str(features))
-
 	else:
 		user_input = kb.read_input(parameters.rounds)  # read the password n times from the user user_input
 		passwords = user_input[1]
-		print(passwords)
 		features = history.add_control_strings(user_input[0])
-		print(features)
+
+	print("\nPasswords entered: " + str(passwords))
+	print("\nFeatures measured:\n" + str(features))
 
 	# Check if the passwords entered are all the same
 	if misc.compare_list_items(passwords) != 1 or misc.create_user_files(user_name) != 1:
@@ -53,7 +51,7 @@ def register_new_user(demo):
 
 	# Create random r and save it to the file system
 	r = str(random.getrandbits(parameters.r_size))
-	print(str(r))
+	print("\nr: " + str(r))
 
 	if not file_ops.write("users/" + user_name + "/r", r, "w+"):
 		print(parameters.error_msg)
@@ -61,11 +59,11 @@ def register_new_user(demo):
 
 	# Number of feature values (len(pwd) * 2 - 1) -> each character and delays between them
 	coefficient_count = len(passwords[0]) * 2 - 1
-	print("coeff count: " + str(coefficient_count))
+	print("\nNumber of coefficients: " + str(coefficient_count))
 
 	# Create and save the user's q
 	q = init.generate_q()
-	print("q: " + str(q))
+	print("\nq: " + str(q))
 
 	if not file_ops.write("users/" + user_name + "/q", str(q), "w+"):
 		print(parameters.error_msg)

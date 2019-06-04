@@ -113,7 +113,7 @@ def calc_distinguishing_features(features):
 
 	# t = 100
 	t = numpy.mean(numpy.mean(features))
-	print(t)
+	print("\nt" + str(t))
 	k = 0.3
 	h = 8
 
