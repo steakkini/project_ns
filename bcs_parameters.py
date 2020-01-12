@@ -4,10 +4,10 @@ these parameters used to tweak the application and its behaviour
 """
 
 """ number of name-entering repetitions during registration """
-rounds = 3
+rounds = 5
 
 """ last h successful logins to the account (see section 3.1) """
-h = 8
+h = 5
 
 """ where k E R^+ is a parameter of the system (see section 3.1.) """
 """ assumed to be a feature threshold to filter out unrealistic deaviations (e.g. a delay of 2 seconds) """

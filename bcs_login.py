@@ -120,16 +120,23 @@ def login_as_user(demo):
 		if str(decrypted).find("---- BEGIN HISTORY ----") != -1:
 			print("\nHpwd was recovered correctly, since the history was decrypted successfully!")
 
-			###todo update history file
-			#updated_history = history.update_history(decrypted, features)
+			###update history file
+			updated_history = history.update_history(decrypted, features)
+			os.remove("users/" + user_name + "/history")
+			cipher_text = crypto.aes_encrypt(str(misc.pad_something(str(history.assemble_history(updated_history)))), crypto.derive_key(str(hardened_password)))
+
+			if not file_ops.write("users/" + user_name + "/history", cipher_text, "wb"):
+				print(parameters.error_msg)
+				exit()
 
 
 			### update r and q and instructions
-			os.remove("users/" + user_name + "/r")
-			init.generate_r(user_name)
+			#os.remove("users/" + user_name + "/r")
+			#init.generate_r(user_name)
 
-			os.remove("users/" + user_name + "/q")
-			init.generate_q(user_name)
+			#
+			#os.remove("users/" + user_name + "/q")
+			#init.generate_q(user_name)
 
 			###todo update instructions
 

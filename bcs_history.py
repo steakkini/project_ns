@@ -63,13 +63,21 @@ def update_history(current_history, feature_vector):
 	depends on the value assigned to parameters.h in the parameters list.
 	"""
 
+	print("Features of current login: " + str(feature_vector))
+
+	new_login = []
+	for i in feature_vector:
+		new_login.append(int(i))
+
 	current_history = parse_features_from_history(current_history)
+	print("Old history " + str(current_history))
 
-	if len(current_history) > parameters.h:
-		current_history = current_history[-1:]
+	while len(current_history) >= parameters.h:
+		current_history.pop(0)
 
-	current_history.append(feature_vector.get_features_list())
-	print(current_history)
+	current_history.append(new_login)
+
+	print("New history " + str(current_history))
 	return current_history
 
 
@@ -98,6 +106,7 @@ def assemble_history(history):
 	for i in history:
 		for j in i:
 			history_string += str(j) + " "
+		history_string += "\n"
 
 	return misc.pad_something(add_control_strings(history_string))
 

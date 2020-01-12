@@ -73,7 +73,7 @@ def read_input(rounds):
 
 	read the password / user input for a specified number of times
 	"""
-	print("Da bin i wieda")
+
 	global text
 	global vector
 	passwords = []

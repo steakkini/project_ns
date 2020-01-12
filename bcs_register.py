@@ -62,6 +62,10 @@ def register_new_user(demo):
 	q = init.generate_q(user_name)
 	print("\nq: " + str(q))
 
+	if not file_ops.write("users/" + user_name + "/q", str(q), "w+"):
+		print(parameters.error_msg)
+		exit()
+
 	# Create a random polynomial
 	polynomial = init.initialize_polynomial(q, coefficient_count)
 
