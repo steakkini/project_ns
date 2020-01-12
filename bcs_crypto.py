@@ -2,6 +2,8 @@ from Crypto.Cipher import AES
 import os
 import bcrypt
 import bcs_parameters as parameters
+import hmac
+import hashlib
 
 
 def aes_encrypt(plain_text, key):
@@ -50,4 +52,9 @@ def derive_key(password):
 	return key
 
 
+def get_alpha_prf(pwd, r, i):
+	return int(hmac.new(pwd, r, hashlib.sha512).hexdigest(), 16) * (2 * i)
 
+
+def get_beta_prf(pwd, r, i):
+	return int(hmac.new(pwd, r, hashlib.sha512).hexdigest(), 16) * (2 * i + 1)

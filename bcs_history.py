@@ -56,7 +56,7 @@ def regroup_features(features):
 def update_history(current_history, feature_vector):
 	"""
 	:param current_history: current, plain text history
-	:param feature_vector: updated, plain text history
+	:param feature_vector: features of the current logon attempt
 	:return: the updated, plain text history
 
 	updates the history file accordingly upon a successful login. the number of logins kept in the history file
@@ -69,7 +69,7 @@ def update_history(current_history, feature_vector):
 		current_history = current_history[-1:]
 
 	current_history.append(feature_vector.get_features_list())
-
+	print(current_history)
 	return current_history
 
 

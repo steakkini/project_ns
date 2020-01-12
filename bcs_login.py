@@ -5,7 +5,10 @@ import sha3
 import bcs_misc as misc
 import bcs_file_ops as file_ops
 import bcs_crypto as crypto
-
+import bcs_history as history
+import bcs_init as init
+import hmac
+import hashlib
 
 def login_as_user(demo):
 	"""
@@ -32,13 +35,13 @@ def login_as_user(demo):
 		return
 
 	# get username from input
-	username = raw_input("Enter name: ")
+	user_name = raw_input("Enter name: ")
 
-	if username not in user_names:
+	if user_name not in user_names:
 		print("Sorry, no such account.")
 		return
 	else:
-		with open("users/" + username + "/instructions", "r") as file:
+		with open("users/" + user_name + "/instructions", "r") as file:
 			instruction_table = file.read().split("\n")
 
 		instructions = []
@@ -47,6 +50,9 @@ def login_as_user(demo):
 		print("login inttable: " + str(instructions))
 
 		print("Enter password: ")
+
+		with open("users/" + user_name + "/r", "r") as file:
+			r = file.read()
 
 		if demo:
 			password = "test"
@@ -74,19 +80,23 @@ def login_as_user(demo):
 		points = []
 		#features = [58, 59, 45, 43, 44, 66, 89] # debug values
 		print("\nRecovering hpwd...")
+		print("\nUsing r " + str(r))
+
+
+
 
 		for i in range(1, len(features)+1):
 			if not features[i-1] is -9000:
 				print(instructions[0][i-1])
 				alpha = int(instructions[0][i - 1])
 				x_i = 2 * i
-				y_i = alpha - int(sha3.sha3_512(password.encode('utf-8')).hexdigest(), 16) * (2 * i)
+				y_i = alpha - crypto.get_alpha_prf(password, r, i)
 				points.append((x_i, y_i))
 			elif i <= feature_count:
 				print(instructions[1][i - 1])
 				beta = int(instructions[1][i - 1])
 				x_i = 2 * i + 1
-				y_i = beta - int(sha3.sha3_512(password.encode('utf-8')).hexdigest(), 16) * (2 * i + 1)
+				y_i = beta - crypto.get_beta_prf(password, r, i)
 				points.append((x_i, y_i))
 			i += 1
 
@@ -95,7 +105,7 @@ def login_as_user(demo):
 		hardened_password = interpolated(0)
 		print("\nThe recovered hpwd is: ", hardened_password)
 
-		cipher_text = file_ops.read("users/" + username + "/history", "rb")
+		cipher_text = file_ops.read("users/" + user_name + "/history", "rb")
 
 		if cipher_text is False:
 			print(parameters.error_msg)
@@ -107,3 +117,29 @@ def login_as_user(demo):
 		print("\nHistory decrypted:\n" + decrypted)
 
 		#### check against known plain text
+		if str(decrypted).find("---- BEGIN HISTORY ----") != -1:
+			print("\nHpwd was recovered correctly, since the history was decrypted successfully!")
+
+			###todo update history file
+			#updated_history = history.update_history(decrypted, features)
+
+
+			### update r and q and instructions
+			os.remove("users/" + user_name + "/r")
+			init.generate_r(user_name)
+
+			os.remove("users/" + user_name + "/q")
+			init.generate_q(user_name)
+
+			###todo update instructions
+
+
+
+		else:
+			print("\nOooops, the hpwd was not recovered correctly, since the history could not be decrypted!")
+
+
+
+
+
+

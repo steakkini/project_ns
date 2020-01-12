@@ -29,6 +29,7 @@ def register_new_user(demo):
 	
 	while user_name == "" or user_name in names:
 		if user_name in names:
+
 			user_name = str(raw_input("Name already in use. Please enter another one: "))
 		else:
 			user_name = str(raw_input("Please enter a name: "))
@@ -37,6 +38,7 @@ def register_new_user(demo):
 		passwords = ["test", "test", "test"]
 		features = history.add_control_strings("58 59 45 43 44 66 89\n58 59 45 43 44 66 89\n58 59 45 43 44 66 89\n")
 	else:
+		print("\nEnter password " + str(parameters.rounds) + " times and press TAB each time.")
 		user_input = kb.read_input(parameters.rounds)  # read the password n times from the user user_input
 		passwords = user_input[1]
 		features = history.add_control_strings(user_input[0])
@@ -50,30 +52,21 @@ def register_new_user(demo):
 		exit()
 
 	# Create random r and save it to the file system
-	r = str(random.getrandbits(parameters.r_size))
-	print("\nr: " + str(r))
-
-	if not file_ops.write("users/" + user_name + "/r", r, "w+"):
-		print(parameters.error_msg)
-		exit()
+	r = init.generate_r(user_name)
 
 	# Number of feature values (len(pwd) * 2 - 1) -> each character and delays between them
 	coefficient_count = len(passwords[0]) * 2 - 1
 	print("\nNumber of coefficients: " + str(coefficient_count))
 
 	# Create and save the user's q
-	q = init.generate_q()
+	q = init.generate_q(user_name)
 	print("\nq: " + str(q))
-
-	if not file_ops.write("users/" + user_name + "/q", str(q), "w+"):
-		print(parameters.error_msg)
-		exit()
 
 	# Create a random polynomial
 	polynomial = init.initialize_polynomial(q, coefficient_count)
 
 	# Create the initial instruction table
-	instruction_table = init.initialize_instruction_table(polynomial, coefficient_count, passwords[0])
+	instruction_table = init.initialize_instruction_table(polynomial, coefficient_count, passwords[0], r)
 	print("\nInstruction table:\n" + str(instruction_table))
 	instructions = ""
 

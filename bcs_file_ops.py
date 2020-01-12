@@ -1,3 +1,5 @@
+import os
+
 def write(path, content, mode):
 	"""
 	:param path: the relative path including the file name
@@ -23,5 +25,12 @@ def read(path, mode):
 	try:
 		with open(path, mode) as f:
 			return f.read()
+	except IOError:
+		return False
+
+
+def delete(path, file_name):
+	try:
+		os.remove(path+file_name)
 	except IOError:
 		return False
