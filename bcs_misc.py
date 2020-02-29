@@ -1,8 +1,14 @@
 import os
 import itertools
-import bcs_parameters as parameters
+import random
+
 from mpmath import *
-import numpy
+
+import bcs_parameters as parameters
+import bcs_history as history
+import bcs_init as init
+import statistics as stat
+import bcs_crypto as crypto
 
 
 def create_user_files(user_name):
@@ -75,13 +81,13 @@ def lagrange_interpolation(points):
 		total = mpf(0)
 		n = len(points)
 
-		for i in xrange(n):
+		for i in range(n):
 			xi, yi = points[i]
 
 			def g(i, n):
 				tot_mul = mpf(1)
 
-				for j in xrange(n):
+				for j in range(n):
 					if i == j:
 						continue
 
@@ -100,27 +106,46 @@ def lagrange_interpolation(points):
 	return p
 
 
-def calc_distinguishing_features(features):
-	"""
-	:param features: the features
+def is_distinguishing(mean, sdev):
+	return abs(mean - parameters.t) > parameters.k * sdev
 
-	distinguishing feature: 0 if mean(last h succ. logins) + k*stddev(last h succ. logins) < ti
-	distinguishing feature: 1 if mean(last h succ. logins) + k*stddev(last h succ. logins) > ti
-	ti -> fixed parameter of the system
-	k -> fixed parameter of the system (e.g. 0,2); k element of R+
-	h -> fixed parameter; h element of N
-	"""
 
-	# t = 100
-	t = numpy.mean(numpy.mean(features))
-	print("\nt" + str(t))
-	k = 0.3
-	h = 8
+def update_instruction_table(polynomial, coefficient_count, password, r, updated_history):
+	alpha = []
+	beta = []
 
-	for f in features:
-		if numpy.mean(f) + k * numpy.std(f) < t:
-			print(f, 0)
-		if numpy.mean(f) + k * numpy.std(f) > t:
-			print(f, 1)
-		if numpy.mean(f) + k * numpy.std(f) == t:
-			print(f, "/")
+	regrouped = history.regroup_features(updated_history)
+
+	for i in coefficient_count:
+		mean = stat.mean(regrouped[i])
+		sdev = stat.stdev(regrouped[i])
+
+		if is_distinguishing(mean, sdev):
+			if mean <= parameters.t:
+				alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
+				beta_y = random.getrandbits(160)
+			else:
+				alpha_y = random.getrandbits(160)
+				beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
+		else:
+			alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
+			beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
+
+		alpha.append(alpha_y + crypto.get_alpha_prf(password, r, i))
+		beta.append(beta_y + crypto.get_beta_prf(password, r, i))
+
+	instructions = ""
+
+	for i in range(len(alpha)):
+		instructions += str(alpha[i]) + " "
+	instructions = instructions[:-1] + "\n"
+
+	for i in range(len(beta)):
+		instructions += str(beta[i]) + " "
+
+	return instructions[:-1]
+
+
+
+
+

@@ -1,5 +1,6 @@
 import os
 
+
 def write(path, content, mode):
 	"""
 	:param path: the relative path including the file name

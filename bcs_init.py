@@ -1,5 +1,7 @@
-from Crypto.Util import number
 import random
+
+from Crypto.Util import number
+
 import bcs_parameters as parameters
 import bcs_file_ops as file_ops
 import bcs_crypto as crypto
@@ -87,11 +89,19 @@ def initialize_instruction_table(polynomial, feature_count, pwd, r):
 	beta = []
 
 	for i in range(1, feature_count + 1):
-
 		alpha_y = get_y(polynomial, 2 * i, feature_count)
 		beta_y = get_y(polynomial, 2 * i + 1, feature_count)
 
 		alpha.append(alpha_y + crypto.get_alpha_prf(pwd, r, i))
-		beta.append(beta_y + crypto.get_alpha_prf(pwd, r, i))
+		beta.append(beta_y + crypto.get_beta_prf(pwd, r, i))
 
-	return alpha, beta
+	instructions = ""
+
+	for i in range(len(alpha)):
+		instructions += str(alpha[i]) + " "
+	instructions = instructions[:-1] + "\n"
+
+	for i in range(len(beta)):
+		instructions += str(beta[i]) + " "
+
+	return instructions[:-1]

@@ -3,7 +3,6 @@ import time
 from pynput.keyboard import Key, Listener, Controller
 from FeatureVector import *
 
-import bcs_parameters as parameters
 
 key_press_time = 0
 key_release_time = 0
@@ -87,6 +86,6 @@ def read_input(rounds):
 			listener.join()
 	
 		passwords.append(text)	
-		features = features + vector.get_features_string() + "\n"
+		features = features + vector.get_features_string()# + "\n"
 
 	return features, passwords

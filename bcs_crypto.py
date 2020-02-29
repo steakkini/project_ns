@@ -12,7 +12,8 @@ def aes_encrypt(plain_text, key):
 	:param key: the key derived from the password
 	:return: the cipher text
 
-	AES encryption function which also generates a suitable IV
+	AES encryption function which also
+	generates a suitable IV
 	"""
 
 	iv = os.urandom(parameters.iv_size)
@@ -53,8 +54,8 @@ def derive_key(password):
 
 
 def get_alpha_prf(pwd, r, i):
-	return int(hmac.new(pwd, r, hashlib.sha512).hexdigest(), 16) * (2 * i)
+	return int(hmac.new(pwd, r, hashlib.sha1).hexdigest(), 16) * (2 * i)
 
 
 def get_beta_prf(pwd, r, i):
-	return int(hmac.new(pwd, r, hashlib.sha512).hexdigest(), 16) * (2 * i + 1)
+	return int(hmac.new(pwd, r, hashlib.sha1).hexdigest(), 16) * (2 * i + 1)

@@ -1,6 +1,5 @@
 import bcs_login as login
 import bcs_register as register
-import os
 
 
 def run_demo():

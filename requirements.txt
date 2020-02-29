@@ -1,6 +1,6 @@
 bcrypt
-pycrypto
-sha3
+pycryptodome
 pynput
 numpy
 mpmath
+statistics
