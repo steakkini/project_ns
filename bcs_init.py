@@ -50,8 +50,9 @@ def initialize_polynomial(q, coefficient_count):
 	coefficients = []
 
 	for i in range(coefficient_count):
-		coefficients.append(random.getrandbits(parameters.q_size) % int(q))
-
+		coefficient = (random.getrandbits(parameters.q_size) % int(q))
+		coefficients.append(coefficient)
+		print("coeff no. "+ str(i) + " " + str(coefficient))
 	return coefficients
 
 
@@ -73,11 +74,12 @@ def get_y(polynomial, x, m):
 	return y
 
 
-def initialize_instruction_table(polynomial, feature_count, pwd, r):
+def initialize_instruction_table(polynomial, feature_count, pwd, r , q):
 	"""
 	:param polynomial: the random polynomial
 	:param feature_count: number of features (i.e. the degree of the polynomial)
 	:param pwd: the plain text password
+	:param r: the r
 	:return: 2 lists containing alpha and beta values
 
 	basically:
@@ -92,8 +94,8 @@ def initialize_instruction_table(polynomial, feature_count, pwd, r):
 		alpha_y = get_y(polynomial, 2 * i, feature_count)
 		beta_y = get_y(polynomial, 2 * i + 1, feature_count)
 
-		alpha.append(alpha_y + crypto.get_alpha_prf(pwd, r, i))
-		beta.append(beta_y + crypto.get_beta_prf(pwd, r, i))
+		alpha.append(alpha_y + crypto.get_alpha_prf(pwd, r, i) % int(q))
+		beta.append(beta_y + crypto.get_beta_prf(pwd, r, i) % int(q))
 
 	instructions = ""
 

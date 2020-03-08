@@ -8,9 +8,11 @@ def parse_features_from_history(history):
     :return: a list of feature measurements
     parses the history text into a list containing lists of feature measurements
     """
-
+    history = history.decode()
+    print("type of history: " + str(type(history)))
     feature_start = parameters.pos  # directly after "---- BEGIN HISTORY ----\n"
     feature_end = history.find("\n---- END HISTORY ----")  # directly before "\n---- END HISTORY ----"
+
 
     if "---- BEGIN HISTORY ----" not in history:
         return "history damaged."
@@ -20,6 +22,7 @@ def parse_features_from_history(history):
 
     for line in features.splitlines():
         line = line[:-1]
+        print("Line: " + str(line))
         result.append([int(i) for i in line.split(" ")])
 
     return result

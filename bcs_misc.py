@@ -110,29 +110,30 @@ def is_distinguishing(mean, sdev):
 	return abs(mean - parameters.t) > parameters.k * sdev
 
 
-def update_instruction_table(polynomial, coefficient_count, password, r, updated_history):
+def update_instruction_table(polynomial, coefficient_count, password, r, updated_history, q):
 	alpha = []
 	beta = []
+	q = int(q)
 
 	regrouped = history.regroup_features(updated_history)
 
-	for i in coefficient_count:
-		mean = stat.mean(regrouped[i])
-		sdev = stat.stdev(regrouped[i])
+	for i in range(1, coefficient_count + 1):
+		mean = stat.mean(regrouped[i-1])
+		sdev = stat.stdev(regrouped[i-1])
 
-		if is_distinguishing(mean, sdev):
+		if is_distinguishing(mean, sdev) and len(updated_history) == parameters.h:
 			if mean <= parameters.t:
 				alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
-				beta_y = random.getrandbits(160)
+				beta_y = random.getrandbits(150)
 			else:
-				alpha_y = random.getrandbits(160)
+				alpha_y = random.getrandbits(150)
 				beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
 		else:
 			alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
 			beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
 
-		alpha.append(alpha_y + crypto.get_alpha_prf(password, r, i))
-		beta.append(beta_y + crypto.get_beta_prf(password, r, i))
+		alpha.append(alpha_y + crypto.get_alpha_prf(password, r, i) % q)
+		beta.append(beta_y + crypto.get_beta_prf(password, r, i) % q)
 
 	instructions = ""
 

@@ -1,7 +1,6 @@
 from Crypto.Cipher import AES
-import os
+
 import bcrypt
-import bcs_parameters as parameters
 import hmac
 import hashlib
 
@@ -12,16 +11,14 @@ def aes_encrypt(plain_text, key):
 	:param key: the key derived from the password
 	:return: the cipher text
 
-	AES encryption function which also
-	generates a suitable IV
 	"""
 
-	iv = os.urandom(parameters.iv_size)
-	cipher = AES.new(key, AES.MODE_CBC, iv)
-	return iv + cipher.encrypt(plain_text)
+	cipher = AES.new(key, AES.MODE_EAX)
+	cipher_text, tag = cipher.encrypt_and_digest(plain_text.encode())
+	return cipher.nonce, tag, cipher_text
 
 
-def aes_decrypt(cipher_text, key):
+def aes_decrypt(cipher_text, nonce, tag, key):
 	"""
 	:param cipher_text: the IV concatenated with the cipher text
 	:param key: the key derived from the password
@@ -30,10 +27,12 @@ def aes_decrypt(cipher_text, key):
 	a simple AES decryption function which also retrieves the IV prepended to the cipher text
 	"""
 
-	iv = cipher_text[0:parameters.iv_size]
-	cipher_text = cipher_text[parameters.iv_size:len(cipher_text)]
-	cipher = AES.new(key, AES.MODE_CBC, iv)
-	return cipher.decrypt(cipher_text)
+	try:
+		cipher = AES.new(key, AES.MODE_EAX, nonce)
+		return cipher.decrypt_and_verify(cipher_text, tag)
+	except ValueError:
+		print("Decryption Error :(")
+		return None
 
 
 def derive_key(password):
@@ -45,8 +44,8 @@ def derive_key(password):
 	"""
 
 	key = bcrypt.kdf(
-		password=password,
-		salt="thisdoesnotreallymatterhere",  # not using random salts, because I am lazy and it does not really matter here
+		password=password.encode(),
+		salt="thisdoesnotreallymatterhere".encode(),  # not using random salts, because I am lazy and it does not really matter here
 		desired_key_bytes=32,
 		rounds=120)
 	
@@ -54,8 +53,8 @@ def derive_key(password):
 
 
 def get_alpha_prf(pwd, r, i):
-	return int(hmac.new(pwd, r, hashlib.sha1).hexdigest(), 16) * (2 * i)
+	return int(hmac.new(pwd.encode(), r.encode(), hashlib.sha1).hexdigest(), 16) * (2 * i)
 
 
 def get_beta_prf(pwd, r, i):
-	return int(hmac.new(pwd, r, hashlib.sha1).hexdigest(), 16) * (2 * i + 1)
+	return int(hmac.new(pwd.encode(), r.encode(), hashlib.sha1).hexdigest(), 16) * (2 * i + 1)

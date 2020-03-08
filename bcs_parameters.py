@@ -11,7 +11,7 @@ h = 5
 
 """ where k E R^+ is a parameter of the system (see section 3.1.) """
 """ assumed to be a feature threshold to filter out unrealistic deviations (e.g. a delay of 2 seconds) """
-k = 0.4
+k = 2
 
 """ size of q """
 q_size = 160
@@ -46,5 +46,5 @@ pos = 24
 """ size of AES IV"""
 iv_size = 16
 
-""" treshold of the featues """
-t = 11
+""" treshold of the features """
+t = 10

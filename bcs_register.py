@@ -1,7 +1,5 @@
 import os
 
-#from pip._vendor.distlib.compat import raw_input
-
 import bcs_parameters as parameters
 import bcs_keyboard as kb
 import bcs_misc as misc
@@ -42,12 +40,15 @@ def register_new_user(demo):
 		passwords = user_input[1]
 		features = history.add_control_strings(user_input[0])
 
+
 	print("\nPasswords entered: " + str(passwords))
 	print("\nFeatures measured:\n" + str(features))
 
 	""" Check if the passwords entered are all the same """
 	if misc.compare_list_items(passwords) != 1 or misc.create_user_files(user_name) != 1:
+		print("here0")
 		print(parameters.error_msg)
+		print("here")
 		exit()
 
 	""" Create random r and save it to the file system """
@@ -69,7 +70,7 @@ def register_new_user(demo):
 	polynomial = init.initialize_polynomial(q, coefficient_count)
 
 	""" Create the initial instruction table """
-	instruction_table = init.initialize_instruction_table(polynomial, coefficient_count, passwords[0], r)
+	instruction_table = init.initialize_instruction_table(polynomial, coefficient_count, passwords[0], r, q)
 	print("\nInstruction table:\n" + str(instruction_table))
 
 	""" write instruction table to file system """
@@ -81,8 +82,6 @@ def register_new_user(demo):
 	""" Initialize history, and encrypt it with polynomial[0] which is the hpwd """
 	print("\nEncryption key: " + str(polynomial[0]))
 
-	cipher_text = crypto.aes_encrypt(misc.pad_something(features), crypto.derive_key(str(polynomial[0])))
-
-	if not file_ops.write("users/" + user_name + "/history", cipher_text, "wb"):
+	if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(misc.pad_something(features), crypto.derive_key(str(polynomial[0]))), "wb"):
 		print(parameters.error_msg)
 		exit()

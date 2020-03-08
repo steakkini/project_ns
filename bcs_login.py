@@ -1,7 +1,5 @@
 import os
 
-#from pip._vendor.distlib.compat import raw_input
-
 import bcs_keyboard as kb
 import bcs_parameters as parameters
 import bcs_misc as misc
@@ -24,7 +22,6 @@ def login_as_user(demo):
 	* update the history file accordingly and basically perform all the initial steps
 	"""
 
-    # check if user accounts are present
     if not os.path.exists('users'):
         print("Sorry, no accounts available. Please sign up first.")
         return
@@ -35,7 +32,6 @@ def login_as_user(demo):
         print("Sorry, no accounts available. Please sign up first.")
         return
 
-    # get username from input
     user_name = input("Enter name: ")
 
     if user_name not in user_names:
@@ -62,37 +58,30 @@ def login_as_user(demo):
             password = user_input[1][0]  # this is the password
             features = user_input[0].split(" ")
 
-            print("features are: ")  # + str(features))
-            print(features)
+            print("features are: ")
 
         coefficient_count = len(password) * 2 - 1
         features = list(map(int, features))
-        i = 0
+        # i = 0
 
-        for f in features:
-            if not int(f) < int(parameters.k):
-                features[i] = -9000  # debug value
-            i += 1
-
+        error_correction = list(map(lambda x: x < parameters.t, features))
         points = []
-        # features = [58, 59, 45, 43, 44, 66, 89] # debug values
-        print("\nRecovering hpwd...")
-        print("\nUsing r " + str(r))
-        print(len(features))
+
+        """ read q from user file """
+        with open("users/" + user_name + "/q", "r") as file:
+            q = int(file.read())
+
         for i in range(1, len(features) + 1):
-            if not features[i - 1] is -9000:
+            if list(error_correction)[i-1]:
                 alpha = int(instructions[0][i - 1])
                 x_i = 2 * i
-                y_i = alpha - crypto.get_alpha_prf(password, r, i)
-                # y_i = alpha - crypto.get_alpha_prf(password, r, x_i)
+                y_i = alpha - (crypto.get_alpha_prf(password, r, i) % q)
                 points.append((x_i, y_i))
             elif i <= coefficient_count:
                 beta = int(instructions[1][i - 1])
                 x_i = 2 * i + 1
-                y_i = beta - crypto.get_beta_prf(password, r, i)
-                # y_i = beta - crypto.get_beta_prf(password, r, x_i)
+                y_i = beta - (crypto.get_beta_prf(password, r, i) % q)
                 points.append((x_i, y_i))
-            i += 1
 
         print("points: " + str(points))
 
@@ -102,16 +91,20 @@ def login_as_user(demo):
         hardened_password = interpolated(0)
         print("\nThe recovered hpwd is: ", hardened_password)
 
-        cipher_text = file_ops.read("users/" + user_name + "/history", "rb")
-
-        if cipher_text is False:
-            print(parameters.error_msg)
-            exit()
+        nonce, tag, cipher_text = file_ops.read("users/" + user_name + "/history", "rb")
 
         print("\nDecrypting history with hpwd...")
-        decrypted = crypto.aes_decrypt(cipher_text, crypto.derive_key(str(hardened_password)))
 
-        print("\nHistory decrypted:\n" + decrypted)
+        decrypted = crypto.aes_decrypt(cipher_text, nonce, tag, crypto.derive_key(str(hardened_password)))
+        if decrypted is None:
+            print("\nSorry, login failed due to wrong password or typing pattern")
+            return()
+
+        print("\nHistory decrypted:\n" + str(decrypted.decode()))
+
+        """ create new polynomial such that c[0] = hpwd """
+        print("coefficient count " + str(coefficient_count))
+        polynomial = init.initialize_polynomial(q, coefficient_count)
 
         """ check history content against known plain text """
         if str(decrypted).find("---- BEGIN HISTORY ----") != -1:
@@ -119,35 +112,26 @@ def login_as_user(demo):
 
             """ update history file """
             updated_history = history.update_history(decrypted, features)
-            os.remove("users/" + user_name + "/history")
-            cipher_text = crypto.aes_encrypt(str(misc.pad_something(str(history.assemble_history(updated_history)))),
-                                             crypto.derive_key(str(hardened_password)))
 
-            if not file_ops.write("users/" + user_name + "/history", cipher_text, "wb"):
+            print("updated history: ")
+            print(updated_history)
+            os.remove("users/" + user_name + "/history")
+
+            if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(str(history.assemble_history(updated_history)), crypto.derive_key(str(polynomial[0]))), "wb"):
                 print(parameters.error_msg)
-                exit()
+                return
 
             """ update r """
             os.remove("users/" + user_name + "/r")
             new_r = init.generate_r(user_name)
 
-            """ update """
-            os.remove("users/" + user_name + "/q")
-            new_q = init.generate_q(user_name)
-
-            """ create new polynomial such that c[0] = hpwd """
-            print("coefficient count " + str(coefficient_count))
-            polynomial = init.initialize_polynomial(new_q, coefficient_count)
-            polynomial[0] = long(hardened_password)
-
             """ update instruction table """
-            instruction_table = misc.update_instruction_table(polynomial, coefficient_count, password, r,
-                                                              updated_history)
+            instruction_table = misc.update_instruction_table(polynomial, coefficient_count, password, new_r, updated_history, q)
             print("\nInstruction table:\n" + str(instruction_table))
 
             os.remove("users/" + user_name + "/instructions")
             if not file_ops.write("users/" + user_name + "/instructions", instruction_table, "w"):
                 print(parameters.error_msg)
-                exit()
+                return
         else:
             print("\nOooops, the hpwd was not recovered correctly, since the history could not be decrypted!")
