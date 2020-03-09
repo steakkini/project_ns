@@ -37,39 +37,44 @@ def login_as_user(demo):
     if user_name not in user_names:
         print("Sorry, no such account.")
         return
+
     else:
-        with open("users/" + user_name + "/instructions", "r") as file:
-            instruction_table = file.read().split("\n")
-
-        instructions = []
-        for i in instruction_table:
-            instructions.append(i.split(" "))
-        print("login inttable: " + str(instructions))
-
-        print("Enter password: ")
-
         with open("users/" + user_name + "/r", "r") as file:
             r = file.read()
+
+        with open("users/" + user_name + "/q", "r") as file:
+            q = int(file.read())
+
+        with open("users/" + user_name + "/instructions", "r") as file:
+            instructions = []
+            instruction_table = file.read().split("\n")
+
+            for i in instruction_table:
+                instructions.append(i.split(" "))
+
+            print("Instruction table before login: " + str(instructions))
 
         if demo:
             iiii = 1
         else:
-            user_input = kb.read_input(1)  # user enters password once
-            password = user_input[1][0]  # this is the password
-            features = user_input[0].split(" ")
+            print("Enter password: ")
+            user_input = kb.read_input(1)
+            password = user_input[1][0]
 
-            print("features are: ")
+            if len(password) == 0:
+                print("No password entered.")
+                return
 
-        coefficient_count = len(password) * 2 - 1
-        features = list(map(int, features))
-        # i = 0
+            features = list(map(int, (user_input[0].split(" "))))
+            print("Features of current login: " + str(features))
+            coefficient_count = len(password) * 2 - 1
 
-        error_correction = list(map(lambda x: x < parameters.t, features))
+        if len(instructions[0]) != coefficient_count:
+            print("Password length does not match instruction table!")
+            return
+
+        error_correction = list(map(lambda x: x < parameters.threshold, features))
         points = []
-
-        """ read q from user file """
-        with open("users/" + user_name + "/q", "r") as file:
-            q = int(file.read())
 
         for i in range(1, len(features) + 1):
             if list(error_correction)[i-1]:
@@ -83,28 +88,23 @@ def login_as_user(demo):
                 y_i = beta - (crypto.get_beta_prf(password, r, i) % q)
                 points.append((x_i, y_i))
 
-        print("points: " + str(points))
+        print("Points: " + str(points))
 
-        interpolated = misc.lagrange_interpolation(points)
-        print("interpolated " + str(interpolated(0)))
-
-        hardened_password = interpolated(0)
+        hardened_password = misc.lagrange_interpolation(points)(0)
         print("\nThe recovered hpwd is: ", hardened_password)
+        print("\nDecrypting history file with hpwd...")
 
         nonce, tag, cipher_text = file_ops.read("users/" + user_name + "/history", "rb")
-
-        print("\nDecrypting history with hpwd...")
-
         decrypted = crypto.aes_decrypt(cipher_text, nonce, tag, crypto.derive_key(str(hardened_password)))
+
         if decrypted is None:
-            print("\nSorry, login failed due to wrong password or typing pattern")
-            return()
+            print("\nSorry, login failed due to wrong password or typing pattern.")
+            return
 
         print("\nHistory decrypted:\n" + str(decrypted.decode()))
 
         """ create new polynomial such that c[0] = hpwd """
-        print("coefficient count " + str(coefficient_count))
-        polynomial = init.initialize_polynomial(q, coefficient_count)
+        polynomial = init.generate_polynomial(q, coefficient_count)
 
         """ check history content against known plain text """
         if str(decrypted).find("---- BEGIN HISTORY ----") != -1:
@@ -113,7 +113,7 @@ def login_as_user(demo):
             """ update history file """
             updated_history = history.update_history(decrypted, features)
 
-            print("updated history: ")
+            print("Updated history file: ")
             print(updated_history)
             os.remove("users/" + user_name + "/history")
 
@@ -134,4 +134,4 @@ def login_as_user(demo):
                 print(parameters.error_msg)
                 return
         else:
-            print("\nOooops, the hpwd was not recovered correctly, since the history could not be decrypted!")
+            print("\nOooops, the hpwd was not recovered correctly!")

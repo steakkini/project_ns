@@ -10,9 +10,8 @@ def parse_features_from_history(history):
     """
     history = history.decode()
     print("type of history: " + str(type(history)))
-    feature_start = parameters.pos  # directly after "---- BEGIN HISTORY ----\n"
-    feature_end = history.find("\n---- END HISTORY ----")  # directly before "\n---- END HISTORY ----"
-
+    feature_start = parameters.pos
+    feature_end = history.find("\n---- END HISTORY ----")
 
     if "---- BEGIN HISTORY ----" not in history:
         return "history damaged."

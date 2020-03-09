@@ -14,7 +14,7 @@ def generate_q(user_name):
 	generates a prime number of whatever size is specified in the parameters list
 	"""
 
-	q = str(number.getPrime(parameters.q_size))
+	q = str(number.getPrime(parameters.crypto_size))
 
 	if not file_ops.write("users/" + user_name + "/q", q, "w+"):
 		print(parameters.error_msg)
@@ -30,17 +30,16 @@ def generate_r(user_name):
 	generate the "randomly chosen element r E {0,1}^160; assuming that this means a 160-bit integer
 	"""
 
-	r = str(random.getrandbits(parameters.r_size))
-	print("\nr: " + str(r))
+	r = str(random.getrandbits(parameters.crypto_size))
 
 	if not file_ops.write("users/" + user_name + "/r", r, "w+"):
 		print(parameters.error_msg)
 		exit()
 
 	return r
-	
 
-def initialize_polynomial(q, coefficient_count):
+
+def generate_polynomial(q, coefficient_count):
 	"""
 	:param q: the random prime number
 	:param coefficient_count: the desired degree of the random polynomial
@@ -50,9 +49,9 @@ def initialize_polynomial(q, coefficient_count):
 	coefficients = []
 
 	for i in range(coefficient_count):
-		coefficient = (random.getrandbits(parameters.q_size) % int(q))
+		coefficient = (random.getrandbits(parameters.crypto_size) % int(q))
 		coefficients.append(coefficient)
-		print("coeff no. "+ str(i) + " " + str(coefficient))
+		print("Coefficient no. " + str(i) + " " + str(coefficient))
 	return coefficients
 
 
@@ -74,13 +73,13 @@ def get_y(polynomial, x, m):
 	return y
 
 
-def initialize_instruction_table(polynomial, feature_count, pwd, r , q):
+def initialize_instruction_table(user_name, polynomial, feature_count, pwd, r , q):
 	"""
-	:param polynomial: the random polynomial
+	:param user_name
+	:param polynomial
 	:param feature_count: number of features (i.e. the degree of the polynomial)
 	:param pwd: the plain text password
-	:param r: the r
-	:return: 2 lists containing alpha and beta values
+	:param r
 
 	basically:
 	alpha = y0ai + G(pwd,a) * (2 * i) mod q
@@ -106,4 +105,8 @@ def initialize_instruction_table(polynomial, feature_count, pwd, r , q):
 	for i in range(len(beta)):
 		instructions += str(beta[i]) + " "
 
-	return instructions[:-1]
+	if not file_ops.write("users/" + user_name + "/instructions", instructions[:-1], "w"):
+		print(parameters.error_msg)
+		exit()
+
+	print("\nInstruction table:\n" + str(instructions))

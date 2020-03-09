@@ -11,42 +11,6 @@ import statistics as stat
 import bcs_crypto as crypto
 
 
-def create_user_files(user_name):
-	"""
-	:param user_name: name of the user who is registering
-	:return: 1 if all folders/files could be created, 0 otherwise
-
-	create all the folders and files for a user during sign up
-	"""
-
-	if not os.path.exists(user_name):
-		try:
-			os.makedirs("users/" + user_name)
-
-			f = open("users/" + user_name + "/history", "w+")
-			f.close()
-
-			f = open("users/" + user_name + "/instructions", "w+")
-			f.close()
-		except IOError:
-			return 0
-
-	return 1
-
-
-def compare_list_items(items):
-	"""
-	:param items: a list
-	:return: 1 if all items are equal, 0 otherwise
-
-	"""
-
-	for a, b in itertools.combinations(items, 2):
-		if a != b:
-			return 0
-	return 1
-
-
 def pad_something(something):
 	"""
 	:param something: string which should be padded
@@ -106,10 +70,6 @@ def lagrange_interpolation(points):
 	return p
 
 
-def is_distinguishing(mean, sdev):
-	return abs(mean - parameters.t) > parameters.k * sdev
-
-
 def update_instruction_table(polynomial, coefficient_count, password, r, updated_history, q):
 	alpha = []
 	beta = []
@@ -119,15 +79,17 @@ def update_instruction_table(polynomial, coefficient_count, password, r, updated
 
 	for i in range(1, coefficient_count + 1):
 		mean = stat.mean(regrouped[i-1])
-		sdev = stat.stdev(regrouped[i-1])
+		std_dev = stat.stdev(regrouped[i-1])
 
-		if is_distinguishing(mean, sdev) and len(updated_history) == parameters.h:
-			if mean <= parameters.t:
+		if (abs(mean - parameters.threshold) > parameters.k * std_dev) and len(updated_history) == parameters.h:
+			if mean <= parameters.threshold:
 				alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
-				beta_y = random.getrandbits(150)
+				beta_y = random.getrandbits(parameters.crypto_size)
+
 			else:
-				alpha_y = random.getrandbits(150)
+				alpha_y = random.getrandbits(parameters.crypto_size)
 				beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
+
 		else:
 			alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
 			beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)

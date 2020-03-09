@@ -8,10 +8,11 @@ def write(path, content, mode):
 	:param mode: text vs binary mode
 	:return: True if successful, False otherwise
 	"""
-
+	print(path)
+	print(content)
+	print(mode)
 	try:
 		with open(path, mode) as f:
-			#f.write(content)
 			[f.write(x) for x in content]
 			return True
 	except IOError:
@@ -27,7 +28,6 @@ def read(path, mode):
 	if mode == "rb":
 		try:
 			f = open(path, mode)
-			# return = nonce, tag, cipher_text
 			return[f.read(x) for x in (16, 16, -1)]
 		except IOError:
 			return False
@@ -40,8 +40,14 @@ def read(path, mode):
 			return False
 
 
-def delete(path, file_name):
+#def delete(path, file_name):
+#	try:
+#		os.remove(path+file_name)
+#	except IOError:
+#		return False
+
+def delete(path):
 	try:
-		os.remove(path+file_name)
+		os.remove(path)
 	except IOError:
 		return False

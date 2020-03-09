@@ -26,15 +26,11 @@ def on_press(key):
 
 	try:
 		to_append = str(key.char)  # [1:-1]
-		print("key" + str(key))
-		print("len " + str(len(to_append)))
 		if len(to_append) == 1:
 			text = text + to_append
-			print(text)
 	except AttributeError:
-		print('special key {0} pressed'.format(
+		print('Special key {0} pressed'.format(
 			key))
-
 
 	vector.append_delay(int(str((key_press_time - key_release_time) * 1000).split(".")[0]))
 
