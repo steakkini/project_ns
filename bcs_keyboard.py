@@ -1,8 +1,8 @@
 import time
 
 from pynput.keyboard import Key, Listener, Controller
-from FeatureVector import *
 
+from FeatureVector import *
 
 key_press_time = 0
 key_release_time = 0

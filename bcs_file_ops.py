@@ -1,4 +1,3 @@
-import os
 
 
 def write(path, content, mode):
@@ -8,9 +7,7 @@ def write(path, content, mode):
 	:param mode: text vs binary mode
 	:return: True if successful, False otherwise
 	"""
-	print(path)
-	print(content)
-	print(mode)
+
 	try:
 		with open(path, mode) as f:
 			[f.write(x) for x in content]
@@ -25,7 +22,8 @@ def read(path, mode):
 	:param mode: text vs binary mode
 	:return: the file's content if successful, False otherwise
 	"""
-	if mode == "rb":
+
+	if mode == "rb":  # this specific mode is used for reading the encrypted history file
 		try:
 			f = open(path, mode)
 			return[f.read(x) for x in (16, 16, -1)]
@@ -38,16 +36,3 @@ def read(path, mode):
 				return f.read()
 		except IOError:
 			return False
-
-
-#def delete(path, file_name):
-#	try:
-#		os.remove(path+file_name)
-#	except IOError:
-#		return False
-
-def delete(path):
-	try:
-		os.remove(path)
-	except IOError:
-		return False

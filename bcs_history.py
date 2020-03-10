@@ -1,5 +1,4 @@
 import bcs_parameters as parameters
-import bcs_misc as misc
 
 
 def parse_features_from_history(history):
@@ -8,51 +7,16 @@ def parse_features_from_history(history):
     :return: a list of feature measurements
     parses the history text into a list containing lists of feature measurements
     """
+
     history = history.decode()
-    print("type of history: " + str(type(history)))
-    feature_start = parameters.pos
-    feature_end = history.find("\n---- END HISTORY ----")
-
-    if "---- BEGIN HISTORY ----" not in history:
-        return "history damaged."
-
-    features = history[feature_start:feature_end]
+    features = history[0:history.find("\n#")]
     result = []
 
     for line in features.splitlines():
         line = line[:-1]
-        print("Line: " + str(line))
         result.append([int(i) for i in line.split(" ")])
 
     return result
-
-
-def regroup_features(features):
-    """
-	:param features: a list of features
-	:return: basically the same list but structured differently (see below)
-
-	regroups distinct measurements of the same feature into lists
-	as preparation for standard dev and mean calculation, like so:
-	f1, f2, f3, f4
-	f1, f2, f3, f4
-	becomes
-	f1, f1
-	f2, f2
-	...
-	"""
-
-    regrouped = []
-
-    for i in range(len(features[0])):
-        feature_measurements = []
-
-        for j in range(len(features)):
-            feature_measurements.append(int(features[j][i]))
-
-        regrouped.append(feature_measurements)
-
-    return regrouped
 
 
 def update_history(current_history, feature_vector):
@@ -79,18 +43,6 @@ def update_history(current_history, feature_vector):
     return current_history
 
 
-def add_control_strings(history):
-    """
-	:param history:
-	:return: the history string including pre/appended control strings
-
-	pre/appends the control string to make sure that the decryption went fine, meaning that a) the provided
-	password is correct and also the biometrical features match those from previous logins
-	"""
-
-    return "---- BEGIN HISTORY ----\n" + ''.join(history) + "\n---- END HISTORY ----"
-
-
 def assemble_history(history):
     """
 	:param history: list of feature measurements
@@ -106,4 +58,21 @@ def assemble_history(history):
             history_string += str(j) + " "
         history_string += "\n"
 
-    return misc.pad_something(add_control_strings(history_string))
+    return pad_history(history_string[:-1])
+
+
+def pad_history(to_be_padded):
+    """
+	:param to_be_padded: string which should be padded
+	:return: string including appended padding
+
+	appends a padding to a given input to a fixed output size using zeros;
+	in this case to guarantee the fixed file size of the history file
+	"""
+
+    padding = len(to_be_padded) % 16
+
+    if padding != 0:
+        to_be_padded = to_be_padded + "\n" + ((16 - padding) * '#')
+
+    return to_be_padded + ((parameters.history_size - len(to_be_padded)) * '#')

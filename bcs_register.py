@@ -1,12 +1,12 @@
 import os
 
-import bcs_parameters as parameters
-import bcs_keyboard as kb
-import bcs_misc as misc
 import bcs_crypto as crypto
 import bcs_file_ops as file_ops
-import bcs_history as history
-import bcs_init as init
+import bcs_history
+import bcs_instructions
+import bcs_keyboard as kb
+import bcs_misc
+import bcs_parameters as parameters
 
 
 def register_new_user(demo):
@@ -19,6 +19,8 @@ def register_new_user(demo):
 	* generate r, polynomial, q, instruction table
 	* encrypt the history file with hpwd
 	"""
+
+    everything_fine = True
 
     if not os.path.exists('users'):
         os.makedirs('users')
@@ -43,7 +45,7 @@ def register_new_user(demo):
         print("\nNo password entered.")
         return
 
-    features = history.add_control_strings(user_input[0])
+    features = user_input[0]
 
     print("\nPassword entered: " + str(password))
     print("\nFeatures measured:\n" + str(features))
@@ -51,27 +53,37 @@ def register_new_user(demo):
     try:
         os.makedirs("users/" + user_name)
     except IOError:
-        print(parameters.error_msg)
-        return
+        everything_fine = False
 
     """ Number of feature values (len(pwd) * 2 - 1) -> each character and delays between them """
     coefficient_count = len(password) * 2 - 1
     print("\nNumber of coefficients: " + str(coefficient_count))
 
     """ Create random r and q and save them to the file system """
-    r = init.generate_r(user_name)
-    q = init.generate_q(user_name)
+    r = bcs_misc.generate_r(user_name)
+    q = bcs_misc.generate_q(user_name)
 
-   # r, q, polynomial = init.create_user(user_name, )
+    if r is False or q is False:
+        everything_fine = False
 
     """ Create a random polynomial """
-    polynomial = init.generate_polynomial(q, coefficient_count)
+    polynomial = bcs_misc.generate_polynomial(q, coefficient_count)
     print("\nThe hardened password is: " + str(polynomial[0]))
 
     """ Create the initial instruction table """
-    init.initialize_instruction_table(user_name, polynomial, coefficient_count, password, r, q)
+    bcs_instructions.initialize_instruction_table(user_name, polynomial, coefficient_count, password, r, q)
 
     """ Try to encrypt the new history file with the new hpwd and save it """
-    if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(misc.pad_something(features), crypto.derive_key(str(polynomial[0]))), "wb"):
+    key = crypto.derive_key(polynomial[0]).digest()
+
+    if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(bcs_history.pad_history(features), key), "wb"):
+        everything_fine = False
+
+    if not everything_fine:
         print(parameters.error_msg)
-        exit()
+        try:
+            os.remove("users/" + user_name)
+        except IOError:
+            return
+
+        print("\nRemoved all newly created files.")

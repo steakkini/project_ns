@@ -1,31 +1,10 @@
-import os
-import itertools
 import random
 
+from Crypto.Util import number
 from mpmath import *
 
+import bcs_file_ops as file_ops
 import bcs_parameters as parameters
-import bcs_history as history
-import bcs_init as init
-import statistics as stat
-import bcs_crypto as crypto
-
-
-def pad_something(something):
-	"""
-	:param something: string which should be padded
-	:return: string including appended padding
-
-	appends a padding to a given input to a fixed output size using zeros;
-	in this case to guarantee the fixed file size of the history file
-	"""
-
-	padding = len(something) % 16
-
-	if padding != 0:
-		something = something + ((16 - padding) * '0')
-
-	return something + ((parameters.history_size - len(something)) * '0')
 
 
 def lagrange_interpolation(points):
@@ -70,45 +49,67 @@ def lagrange_interpolation(points):
 	return p
 
 
-def update_instruction_table(polynomial, coefficient_count, password, r, updated_history, q):
-	alpha = []
-	beta = []
-	q = int(q)
+def get_y(polynomial, x, coefficient_count):
 
-	regrouped = history.regroup_features(updated_history)
+	"""
+	:param polynomial: the random polynomial
+	:param x: the x we want to know the y of
+	:param coefficient_count: degree of the polynomial
+	:return: the y we want to know
 
-	for i in range(1, coefficient_count + 1):
-		mean = stat.mean(regrouped[i-1])
-		std_dev = stat.stdev(regrouped[i-1])
+	helper function to determine the y of a given f(x) of degree m
+	"""
 
-		if (abs(mean - parameters.threshold) > parameters.k * std_dev) and len(updated_history) == parameters.h:
-			if mean <= parameters.threshold:
-				alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
-				beta_y = random.getrandbits(parameters.crypto_size)
+	y = 0
 
-			else:
-				alpha_y = random.getrandbits(parameters.crypto_size)
-				beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
+	for i in range(0, coefficient_count):
+		y = y + polynomial[i] * (x ** i)
 
-		else:
-			alpha_y = init.get_y(polynomial, 2 * i, coefficient_count)
-			beta_y = init.get_y(polynomial, 2 * i + 1, coefficient_count)
-
-		alpha.append(alpha_y + crypto.get_alpha_prf(password, r, i) % q)
-		beta.append(beta_y + crypto.get_beta_prf(password, r, i) % q)
-
-	instructions = ""
-
-	for i in range(len(alpha)):
-		instructions += str(alpha[i]) + " "
-	instructions = instructions[:-1] + "\n"
-
-	for i in range(len(beta)):
-		instructions += str(beta[i]) + " "
-
-	return instructions[:-1]
+	return y
 
 
+def generate_polynomial(q, coefficient_count):
+	"""
+	:param q: the random prime number
+	:param coefficient_count: the desired degree of the random polynomial
+	:return: the polynomials coefficients
+	"""
+
+	coefficients = []
+
+	for i in range(coefficient_count):
+		coefficient = (random.getrandbits(parameters.crypto_size) % int(q))
+		coefficients.append(coefficient)
+		print("Coefficient no. " + str(i) + " " + str(coefficient))
+
+	return coefficients
 
 
+def generate_r(user_name):
+	"""
+	:return: a random number of whatever size in bits is specified in the parameters file
 
+	generates the "randomly chosen element r E {0,1}^160; assuming that this means a 160-bit integer
+	"""
+
+	r = str(random.getrandbits(parameters.crypto_size))
+
+	if not file_ops.write("users/" + user_name + "/r", r, "w+"):
+		return False
+
+	return r
+
+
+def generate_q(user_name):
+	"""
+	:return: the prime number
+
+	generates a (probable) prime number of size specified in the parameters list
+	"""
+
+	q = str(number.getPrime(parameters.crypto_size))
+
+	if not file_ops.write("users/" + user_name + "/q", q, "w+"):
+		return False
+
+	return q
