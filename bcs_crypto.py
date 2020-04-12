@@ -10,7 +10,7 @@ def aes_encrypt(plain_text, key):
 	:return: the cipher text
 
 	"""
-
+	print("history ", plain_text)
 	cipher = AES.new(key, AES.MODE_EAX)
 	cipher_text, tag = cipher.encrypt_and_digest(plain_text.encode())
 	return cipher.nonce, tag, cipher_text

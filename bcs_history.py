@@ -14,6 +14,8 @@ def parse_features_from_history(history):
 
     for line in features.splitlines():
         line = line[:-1]
+        print(line)
+        print(type(line))
         result.append([int(i) for i in line.split(" ")])
 
     return result

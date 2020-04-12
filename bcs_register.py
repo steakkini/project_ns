@@ -9,7 +9,7 @@ import bcs_misc
 import bcs_parameters as parameters
 
 
-def register_new_user(demo):
+def register_new_user(demo, d_uname, d_password, d_features):
     """
 	:return: 1 if signup was successful, 0 otherwise
 
@@ -28,24 +28,32 @@ def register_new_user(demo):
     names = os.listdir('users')
     user_name = ""
 
-    while user_name == "" or user_name in names:
-        if user_name in names:
-            user_name = str(input("Name already in use. Please enter another one: "))
-        else:
-            user_name = str(input("Please enter a name: "))
-
     if demo:
-        iiii = 1
+        user_name = d_uname
+        password = d_password
+        features = ""
+        for f in d_features:
+            features = features + str(f) + " "
+        #features = features + " "
+        print("if ", features)
     else:
+
+        while user_name == "" or user_name in names:
+            if user_name in names:
+                user_name = str(input("Name already in use. Please enter another one: "))
+            else:
+                user_name = str(input("Please enter a name: "))
+
         print("\nEnter password and press TAB afterwards.")
         user_input = kb.read_input(1)
         password = user_input[1][0]
 
-    if len(password) == 0:
-        print("\nNo password entered.")
-        return
+        if len(password) == 0:
+            print("\nNo password entered.")
+            return
 
-    features = user_input[0]
+        features = user_input[0]
+    print("feat",features)
 
     print("\nPassword entered: " + str(password))
     print("\nFeatures measured:\n" + str(features))
@@ -76,8 +84,13 @@ def register_new_user(demo):
     """ Try to encrypt the new history file with the new hpwd and save it """
     key = crypto.derive_key(polynomial[0]).digest()
 
-    if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(bcs_history.pad_history(features), key), "wb"):
-        everything_fine = False
+    if demo: # there is a bug with feature handling somewhere...
+        if not file_ops.write("users/" + user_name + "/history",
+                              crypto.aes_encrypt(bcs_history.pad_history(features[:-1]), key), "wb"):
+            everything_fine = False
+    else:
+        if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(bcs_history.pad_history(features), key), "wb"):
+            everything_fine = False
 
     if not everything_fine:
         print(parameters.error_msg)

@@ -64,7 +64,7 @@ def get_y(polynomial, x, coefficient_count):
 
 	for i in range(0, coefficient_count):
 		y = y + polynomial[i] * (x ** i)
-
+		#print("y = " + str(y))
 	return y
 
 
@@ -80,7 +80,7 @@ def generate_polynomial(q, coefficient_count):
 	for i in range(coefficient_count):
 		coefficient = (random.getrandbits(parameters.crypto_size) % int(q))
 		coefficients.append(coefficient)
-		print("Coefficient no. " + str(i) + " " + str(coefficient))
+		#print("Coefficient no. " + str(i) + " " + str(coefficient))
 
 	return coefficients
 

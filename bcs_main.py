@@ -19,10 +19,10 @@ def main():
 			option = input("\nSelect an option: ")
 
 		if option == "0":
-			login.login_as_user(demo=False)
+			login.login_as_user(demo=False, d_uname="", d_password="", d_features=[])
 
 		if option == "1":
-			register.register_new_user(demo=False)
+			register.register_new_user(demo=False, d_uname="", d_password="", d_features=[])
 
 		if option == "2":
 			demo.run_demo()

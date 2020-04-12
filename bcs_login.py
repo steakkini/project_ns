@@ -10,7 +10,7 @@ import bcs_misc as misc
 import bcs_parameters as parameters
 
 
-def login_as_user(demo):
+def login_as_user(demo, d_uname, d_password, d_features):
     """
 	:return: 1 if login was successful, 0 otherwise
 
@@ -27,35 +27,38 @@ def login_as_user(demo):
 
     if not os.path.exists('users'):
         print("Sorry, no accounts available. Please sign up first.")
-        return
+        return False
 
     user_names = os.listdir('users')
 
     if not user_names:
         print("Sorry, no accounts available. Please sign up first.")
-        return
+        return False
 
-    user_name = input("Enter name: ")
+    if demo:
+        user_name = d_uname
+    else:
+        user_name = input("Enter name: ")
 
     if user_name not in user_names:
         print("Sorry, no such account.")
-        return
+        return False
 
     else:
         r = int(file_ops.read("users/" + user_name + "/r", "r"))
         if not r:
             print("\nNo r file available.")
-            return
+            return False
 
         q = int(file_ops.read("users/" + user_name + "/q", "r"))
         if not q:
             print("\nNo q file available.")
-            return
+            return False
 
         instruction_table = file_ops.read("users/" + user_name + "/instructions", "r")
         if not instruction_table:
             print("\nNo instruction table file available.")
-            return
+            return False
 
         instructions = []
         instruction_table = instruction_table.split("\n")
@@ -64,7 +67,11 @@ def login_as_user(demo):
             instructions.append(i.split(" "))
 
         if demo:
-            iiii = 1
+            password = d_password
+            features = d_features
+            print("Features of current login: ", (features))
+            print(type(features))
+
         else:
             print("Enter password: ")
             user_input = kb.read_input(1)
@@ -72,15 +79,17 @@ def login_as_user(demo):
 
             if len(password) == 0:
                 print("No password entered.")
-                return
+                return False
 
             features = list(map(int, (user_input[0].split(" "))))
-            print("Features of current login: " + str(features))
-            coefficient_count = len(password) * 2 - 1
+            print("Features of current login: ", features)
+            print(type(features))
+
+        coefficient_count = len(password) * 2 - 1
 
         if len(instructions[0]) != coefficient_count:
             print("Password length does not match instruction table!")
-            return
+            return False
 
         error_correction = list(map(lambda x: x < parameters.threshold, features))
         points = []
@@ -106,7 +115,7 @@ def login_as_user(demo):
         nonce, tag, cipher_text = file_ops.read("users/" + user_name + "/history", "rb")
         if not nonce or not tag or not cipher_text:
             print("\nNo history file available.")
-            return
+            return False
 
         decrypted = crypto.aes_decrypt(cipher_text, nonce, tag, crypto.derive_key(hardened_password).digest())
 
@@ -125,7 +134,7 @@ def login_as_user(demo):
             print("     ((((\)     (/))))")
             print("\nYou won't get in here >:D")
 
-            return
+            return False
 
         """ create new polynomial such that c[0] = hpwd """
         polynomial = bcs_misc.generate_polynomial(q, coefficient_count)
@@ -141,7 +150,7 @@ def login_as_user(demo):
 
         if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(str(history.assemble_history(updated_history)), crypto.derive_key(polynomial[0]).digest()), "wb"):
             print(parameters.error_msg)
-            return
+            return False
 
         """ update r """
         os.remove("users/" + user_name + "/r")
@@ -154,4 +163,6 @@ def login_as_user(demo):
         os.remove("users/" + user_name + "/instructions")
         if not file_ops.write("users/" + user_name + "/instructions", instruction_table, "w"):
             print(parameters.error_msg)
-            return
+            return False
+
+        return True

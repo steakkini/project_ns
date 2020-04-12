@@ -9,7 +9,7 @@ h = 10
 
 """ where k E R^+ is a parameter of the system (see section 3.1.) """
 """ assumed to be a feature threshold to filter out unrealistic deviations (e.g. a delay of 2 seconds) """
-k = 2
+k = 10
 
 
 """ threshold of the features """
