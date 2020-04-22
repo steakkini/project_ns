@@ -64,15 +64,21 @@ def update_instruction_table(polynomial, coefficient_count, password, r, updated
 	for i in range(1, coefficient_count + 1):
 		mean = stat.mean(regrouped[i-1])
 		std_dev = stat.stdev(regrouped[i-1])
+		print("mean ", mean)
+		print("std_dev ", std_dev)
 
 		if (abs(mean - parameters.threshold) > parameters.k * std_dev) and len(updated_history) == parameters.h:
 			if mean <= parameters.threshold:
 				alpha_y = misc.get_y(polynomial, 2 * i, coefficient_count)
 				beta_y = random.getrandbits(parameters.crypto_size)
+				print(alpha_y)
+				print(beta_y)
 
 			else:
 				alpha_y = random.getrandbits(parameters.crypto_size)
+				print(alpha_y)
 				beta_y = misc.get_y(polynomial, 2 * i + 1, coefficient_count)
+				print(beta_y)
 
 		else:
 			alpha_y = misc.get_y(polynomial, 2 * i, coefficient_count)
