@@ -1,13 +1,12 @@
 import os
 
-import bcs_crypto as crypto
-import bcs_file_ops as file_ops
-import bcs_history as history
-import bcs_instructions
-import bcs_keyboard as kb
-import bcs_misc
-import bcs_misc as misc
-import bcs_parameters as parameters
+import crypto as crypto
+import file_ops as file_ops
+import history as history
+import instructions as inttable
+import keyboard as kb
+import misc as misc
+import parameters as parameters
 
 
 def login_as_user(demo, d_uname, d_password, d_features):
@@ -69,8 +68,7 @@ def login_as_user(demo, d_uname, d_password, d_features):
         if demo:
             password = d_password
             features = d_features
-            print("Features of current login: ", (features))
-            print(type(features))
+            print("Features of current login: ", features)
 
         else:
             print("Enter password: ")
@@ -83,24 +81,24 @@ def login_as_user(demo, d_uname, d_password, d_features):
 
             features = list(map(int, (user_input[0].split(" "))))
             print("Features of current login: ", features)
-            print(type(features))
 
-        coefficient_count = len(password) * 2 - 1
+        m = len(password) * 2 - 1
 
-        if len(instructions[0]) != coefficient_count:
+        if len(instructions[0]) != m:
             print("Password length does not match instruction table!")
             return False
 
-        error_correction = list(map(lambda x: x < parameters.threshold, features))
+        feature_below_t = list(map(lambda feature: feature < parameters.t, features))
         points = []
 
         for i in range(1, len(features) + 1):
-            if list(error_correction)[i-1]:
+            if list(feature_below_t)[i-1]:
                 alpha = int(instructions[0][i - 1])
                 x_i = 2 * i
                 y_i = alpha - (crypto.get_prf(password, str(r), 2 * i) % q)
                 points.append((x_i, y_i))
-            elif i <= coefficient_count:
+            #elif i <= m:
+            else:
                 beta = int(instructions[1][i - 1])
                 x_i = 2 * i + 1
                 y_i = beta - (crypto.get_prf(password, str(r), 2 * i + 1) % q)
@@ -117,7 +115,7 @@ def login_as_user(demo, d_uname, d_password, d_features):
             print("\nNo history file available.")
             return False
 
-        decrypted = crypto.aes_decrypt(cipher_text, nonce, tag, crypto.derive_key(hardened_password).digest())
+        decrypted = crypto.aes_decrypt(cipher_text, nonce, tag, crypto.get_aes_key(hardened_password).digest())
 
         if decrypted is None:
             print("\nLogin failed due to wrong password or typing pattern.")
@@ -137,7 +135,7 @@ def login_as_user(demo, d_uname, d_password, d_features):
             return False
 
         """ create new polynomial such that c[0] = hpwd """
-        polynomial = bcs_misc.generate_polynomial(q, coefficient_count)
+        polynomial = misc.generate_polynomial(q, m)
 
         print("\nHpwd was recovered correctly, since the history was decrypted successfully!")
 
@@ -148,16 +146,16 @@ def login_as_user(demo, d_uname, d_password, d_features):
         print(updated_history)
         os.remove("users/" + user_name + "/history")
 
-        if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(str(history.assemble_history(updated_history)), crypto.derive_key(polynomial[0]).digest()), "wb"):
+        if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(str(history.assemble_history(updated_history)), crypto.get_aes_key(polynomial[0]).digest()), "wb"):
             print(parameters.error_msg)
             return False
 
         """ update r """
         os.remove("users/" + user_name + "/r")
-        new_r = bcs_misc.generate_r(user_name)
+        new_r = misc.generate_r(user_name)
 
         """ update instruction table """
-        instruction_table = bcs_instructions.update_instruction_table(polynomial, coefficient_count, password, new_r, updated_history, q)
+        instruction_table = inttable.update_instruction_table(polynomial, m, password, new_r, updated_history, q)
         print("\nInstruction table:\n" + str(instruction_table))
 
         os.remove("users/" + user_name + "/instructions")

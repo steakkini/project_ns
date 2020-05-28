@@ -1,12 +1,12 @@
 import os
 
-import bcs_crypto as crypto
-import bcs_file_ops as file_ops
-import bcs_history
-import bcs_instructions
-import bcs_keyboard as kb
-import bcs_misc
-import bcs_parameters as parameters
+import crypto as crypto
+import file_ops as file_ops
+import history
+import instructions as inttable
+import keyboard as kb
+import misc
+import parameters as parameters
 
 
 def register_new_user(demo, d_uname, d_password, d_features):
@@ -34,7 +34,6 @@ def register_new_user(demo, d_uname, d_password, d_features):
         features = ""
         for f in d_features:
             features = features + str(f) + " "
-        #features = features + " "
         print("if ", features)
     else:
 
@@ -64,32 +63,32 @@ def register_new_user(demo, d_uname, d_password, d_features):
         everything_fine = False
 
     """ Number of feature values (len(pwd) * 2 - 1) -> each character and delays between them """
-    coefficient_count = len(password) * 2 - 1
-    print("\nNumber of coefficients: " + str(coefficient_count))
+    m = len(password) * 2 - 1
+    print("\nNumber of coefficients: " + str(m))
 
     """ Create random r and q and save them to the file system """
-    r = bcs_misc.generate_r(user_name)
-    q = bcs_misc.generate_q(user_name)
+    r = misc.generate_r(user_name)
+    q = misc.generate_q(user_name)
 
     if r is False or q is False:
         everything_fine = False
 
     """ Create a random polynomial """
-    polynomial = bcs_misc.generate_polynomial(q, coefficient_count)
+    polynomial = misc.generate_polynomial(q, m)
     print("\nThe hardened password is: " + str(polynomial[0]))
 
     """ Create the initial instruction table """
-    bcs_instructions.initialize_instruction_table(user_name, polynomial, coefficient_count, password, r, q)
+    inttable.init_instruction_table(user_name, polynomial, m, password, r, q)
 
     """ Try to encrypt the new history file with the new hpwd and save it """
-    key = crypto.derive_key(polynomial[0]).digest()
+    key = crypto.get_aes_key(polynomial[0]).digest()
 
     if demo: # there is a bug with feature handling somewhere...
         if not file_ops.write("users/" + user_name + "/history",
-                              crypto.aes_encrypt(bcs_history.pad_history(features[:-1]), key), "wb"):
+                              crypto.aes_encrypt(history.pad_history(features[:-1]), key), "wb"):
             everything_fine = False
     else:
-        if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(bcs_history.pad_history(features), key), "wb"):
+        if not file_ops.write("users/" + user_name + "/history", crypto.aes_encrypt(history.pad_history(features), key), "wb"):
             everything_fine = False
 
     if not everything_fine:

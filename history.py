@@ -1,4 +1,4 @@
-import bcs_parameters as parameters
+import parameters as parameters
 
 
 def parse_features_from_history(history):

@@ -8,13 +8,11 @@ h = 4
 
 
 """ where k E R^+ is a parameter of the system (see section 3.1.) """
-""" assumed to be a feature threshold to filter out unrealistic deviations (e.g. a delay of 2 seconds) """
 k = 0.6
 
 
 """ threshold of the features """
-threshold = 130
-
+t = 130
 
 
 """ size of cryptographic primitives q, r, hashes """

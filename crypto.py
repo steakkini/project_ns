@@ -33,7 +33,7 @@ def aes_decrypt(cipher_text, nonce, tag, key):
 		return None
 
 
-def derive_key(password):
+def get_aes_key(password):
 	"""
 	:param password:
 	:return: the SHA256 hash of the password (not the best practice, but tis just a PoC)

@@ -1,17 +1,16 @@
 import random
 import statistics as stat
 
-import bcs_crypto as crypto
-import bcs_file_ops as file_ops
-import bcs_misc as misc
-import bcs_parameters as parameters
+import crypto as crypto
+import file_ops as file_ops
+import parameters as parameters
 
 
-def initialize_instruction_table(user_name, polynomial, feature_count, pwd, r , q):
+def init_instruction_table(user_name, polynomial, m, pwd, r, q):
 	"""
 	:param user_name
 	:param polynomial
-	:param feature_count: number of features (i.e. the degree of the polynomial)
+	:param m: number of features (i.e. the degree of the polynomial)
 	:param pwd: the plain text password
 	:param r
 
@@ -23,12 +22,12 @@ def initialize_instruction_table(user_name, polynomial, feature_count, pwd, r , 
 	alpha = []
 	beta = []
 
-	for i in range(1, feature_count + 1):
-		alpha_y = misc.get_y(polynomial, 2 * i, feature_count)
-		beta_y = misc.get_y(polynomial, 2 * i + 1, feature_count)
+	for i in range(1, m + 1):
+		y0ai = get_y(polynomial, 2 * i, m)
+		y1ai = get_y(polynomial, 2 * i + 1, m)
 
-		alpha.append(alpha_y + crypto.get_prf(pwd, r, 2 * i) % int(q))
-		beta.append(beta_y + crypto.get_prf(pwd, r, 2 * i + 1) % int(q))
+		alpha.append(y0ai + crypto.get_prf(pwd, r, 2 * i) % int(q))
+		beta.append(y1ai + crypto.get_prf(pwd, r, 2 * i + 1) % int(q))
 
 	instructions = ""
 
@@ -46,7 +45,7 @@ def initialize_instruction_table(user_name, polynomial, feature_count, pwd, r , 
 	print("\nInstruction table:\n" + str(instructions))
 
 
-def update_instruction_table(polynomial, coefficient_count, password, r, updated_history, q):
+def update_instruction_table(polynomial, m, password, r, updated_history, q):
 	alpha = []
 	beta = []
 	q = int(q)
@@ -61,28 +60,24 @@ def update_instruction_table(polynomial, coefficient_count, password, r, updated
 
 		regrouped.append(feature_measurements)
 
-	for i in range(1, coefficient_count + 1):
+	for i in range(1, m + 1):
 		mean = stat.mean(regrouped[i-1])
 		std_dev = stat.stdev(regrouped[i-1])
 		print("mean ", mean)
 		print("std_dev ", std_dev)
 
-		if (abs(mean - parameters.threshold) > parameters.k * std_dev) and len(updated_history) == parameters.h:
-			if mean <= parameters.threshold:
-				alpha_y = misc.get_y(polynomial, 2 * i, coefficient_count)
+		if (abs(mean - parameters.t) > parameters.k * std_dev) and len(updated_history) == parameters.h:
+			if mean <= parameters.t:
+				alpha_y = get_y(polynomial, 2 * i, m)
 				beta_y = random.getrandbits(parameters.crypto_size)
-				print(alpha_y)
-				print(beta_y)
 
 			else:
 				alpha_y = random.getrandbits(parameters.crypto_size)
-				print(alpha_y)
-				beta_y = misc.get_y(polynomial, 2 * i + 1, coefficient_count)
-				print(beta_y)
+				beta_y = get_y(polynomial, 2 * i + 1, m)
 
 		else:
-			alpha_y = misc.get_y(polynomial, 2 * i, coefficient_count)
-			beta_y = misc.get_y(polynomial, 2 * i + 1, coefficient_count)
+			alpha_y = get_y(polynomial, 2 * i, m)
+			beta_y = get_y(polynomial, 2 * i + 1, m)
 
 		alpha.append(alpha_y + crypto.get_prf(password, r, 2 * i) % q)
 		beta.append(beta_y + crypto.get_prf(password, r, 2 * i + 1) % q)
@@ -97,3 +92,21 @@ def update_instruction_table(polynomial, coefficient_count, password, r, updated
 		instructions += str(beta[i]) + " "
 
 	return instructions[:-1]
+
+
+def get_y(polynomial, x, coefficient_count):
+
+	"""
+	:param polynomial: the random polynomial
+	:param x: the x we want to know the y of
+	:param coefficient_count: degree of the polynomial
+	:return: the y we want to know
+
+	helper function to determine the y of a given f(x) of degree m
+	"""
+
+	y = 0
+
+	for i in range(0, coefficient_count):
+		y = y + polynomial[i] * (x ** i)
+	return y

@@ -1,6 +1,6 @@
-bcrypt
+#bcrypt
 pycryptodome
 pynput
-numpy
+#numpy
 mpmath
 statistics

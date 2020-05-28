@@ -4,9 +4,9 @@ which is based on the paper "Password hardening based on keystroke dynamics"
 by Fabian Monrose, Michael K. Reiter and Susanne Wetzel (Springer-Verlag, 2001).
 """
 
-import bcs_demo as demo
-import bcs_login as login
-import bcs_register as register
+import demo as demo
+import login as login
+import register as register
 
 
 def main():

@@ -1,5 +1,5 @@
-import bcs_login as login
-import bcs_register as register
+import login as login
+import register as register
 import csv
 import os
 

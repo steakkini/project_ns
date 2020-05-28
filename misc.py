@@ -3,8 +3,8 @@ import random
 from Crypto.Util import number
 from mpmath import *
 
-import bcs_file_ops as file_ops
-import bcs_parameters as parameters
+import file_ops as file_ops
+import parameters as parameters
 
 
 def lagrange_interpolation(points):
@@ -20,8 +20,8 @@ def lagrange_interpolation(points):
 	"""
 
 	def p(x):
-		mp.dps = 100
-		total = mpf(0)
+		mp.dps = 100    # dps = decimal places
+		total = mpf(0)  # mpf is real float, equivalent to Python float
 		n = len(points)
 
 		for i in range(n):
@@ -47,25 +47,6 @@ def lagrange_interpolation(points):
 			return int(floor(total))
 
 	return p
-
-
-def get_y(polynomial, x, coefficient_count):
-
-	"""
-	:param polynomial: the random polynomial
-	:param x: the x we want to know the y of
-	:param coefficient_count: degree of the polynomial
-	:return: the y we want to know
-
-	helper function to determine the y of a given f(x) of degree m
-	"""
-
-	y = 0
-
-	for i in range(0, coefficient_count):
-		y = y + polynomial[i] * (x ** i)
-		#print("y = " + str(y))
-	return y
 
 
 def generate_polynomial(q, coefficient_count):
