@@ -6,7 +6,7 @@ import os
 
 def run_demo():
 
-    with open('demo.csv', newline='') as file:
+    with open('demo2.csv', newline='') as file:
         reader = csv.reader(file)
         data = list(reader)[1:]
 
@@ -33,7 +33,9 @@ def run_demo():
         d_features = [int(i) for i in attempt[3:]]
 
         success.append(login.login_as_user(demo=True, d_uname=d_uname, d_password=d_password, d_features=d_features))
-    print("Expected: ", expected)
+
+    print("\nExpected: ", expected)
     print("Actual:   ", success)
+
 
 

@@ -63,8 +63,6 @@ def update_instruction_table(polynomial, m, password, r, updated_history, q):
 	for i in range(1, m + 1):
 		mean = stat.mean(regrouped[i-1])
 		std_dev = stat.stdev(regrouped[i-1])
-		print("mean ", mean)
-		print("std_dev ", std_dev)
 
 		if (abs(mean - parameters.t) > parameters.k * std_dev) and len(updated_history) == parameters.h:
 			if mean <= parameters.t:
